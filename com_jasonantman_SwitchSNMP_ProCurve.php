@@ -308,9 +308,9 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
       $ret['sysName'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.5.0"); // SNMPv2-MIB::sysName
       $ret['sysLocation'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.6.0"); // SNMPv2-MIB::sysLocation
 
-      $ret['lastTftpDownload'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.6.0"); // RMON2-MIB::probeDownloadFile
+      $ret['lastTftpDownload'] = @snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.6.0"); // RMON2-MIB::probeDownloadFile
 
-      $ret['defaultGateway'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.12.0"); // RMON2-MIB::netDefaultGateway
+      $ret['defaultGateway'] = @snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.12.0"); // RMON2-MIB::netDefaultGateway
 
       $ret['sysUpTime'] = (float)snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.3.0"); // SNMPv2-MIB::sysUpTime - timeticks
 
