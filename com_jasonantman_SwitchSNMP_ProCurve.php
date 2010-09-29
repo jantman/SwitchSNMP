@@ -273,6 +273,152 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
       throw new Exception("Method not implemented in ProCurve switch class."); // TODO - implement this method
     }
 
+    /*
+     * Get an array of IF-MIB indexes to port names.
+     * @return array
+     */
+    public function getPortIndexNameArray()
+    {
+      $myArray = array();
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+      $IFindicies = snmprealwalk($this->IP, $this->rocommunity, ".1.3.6.1.2.1.2.2.1.1");
+      foreach($IFindicies as $index)
+	{
+	  $myArray[$index] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.2.2.1.2.".$index); // IF-MIB::ifDescr
+	}
+      // we now have an array of all interface indicies
+      
+      return $myArray;
+    }
+
+    /*
+     * Return identifying information about the switch, including model and serial numbers.
+     *
+     * RETURN ARRAY fields: 'sysDescr', 'sysContact', 'sysName', 'sysLocation', 'lastTftpDownload', 'defaultGateway', 'sysUpTime'
+     *
+     * @return array
+     */
+    public function getSwitchInfo()
+    {
+      $ret = array();
+
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+      $ret['sysDescr'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.1.0"); // SNMPv2-MIB::sysDescr
+      $ret['sysContact'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.4.0"); // SNMPv2-MIB::sysContact
+      $ret['sysName'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.5.0"); // SNMPv2-MIB::sysName
+      $ret['sysLocation'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.6.0"); // SNMPv2-MIB::sysLocation
+
+      $ret['lastTftpDownload'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.6.0"); // RMON2-MIB::probeDownloadFile
+
+      $ret['defaultGateway'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.16.19.12.0"); // RMON2-MIB::netDefaultGateway
+
+      $ret['sysUpTime'] = (float)snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.3.0"); // SNMPv2-MIB::sysUpTime - timeticks
+
+      // get stuff from ENTITY-MIB
+      snmp_set_oid_numeric_print(TRUE); // we need numeric OIDs
+      $ENTITYmibWalk = snmprealwalk($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.7"); // ENTITY-MIB::entPhysicalName
+      $EntityMibIndex = array();
+      $EntityMibIndex_Sup = "";
+      foreach($ENTITYmibWalk as $key => $val)
+	{
+	  $temp = str_replace(".1.3.6.1.2.1.47.1.1.1.1.7.", "", $key);
+	  $EntityMibIndex[$val] = $temp;
+	  if(strstr($val, "Linecard") != false)
+	    {
+	      $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$temp);
+	      if(strpos($foo, "Supervisor")){ $EntityMibIndex_Sup = $temp;} 
+	    }
+	}
+      // we now have an array of IF-MIB::ifDescr to ENTITY-MIB::entPhysicalName
+
+      if(isset($EntityMibIndex['Switch System']))
+	{
+	  $ret['System_Descr'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$EntityMibIndex['Switch System']);
+	  $ret['System_Firmware'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.9.".$EntityMibIndex['Switch System']);
+	  $ret['System_Software'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.10.".$EntityMibIndex['Switch System']);
+	  $ret['System_Serial'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.11.".$EntityMibIndex['Switch System']);
+	  $ret['System_Model'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.13.".$EntityMibIndex['Switch System']);
+	}
+
+      if(isset($EntityMibIndex['Backplane']))
+	{
+	  $ret['Backplane_Descr'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$EntityMibIndex['Backplane']);
+	  $ret['Backplane_Firmware'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.9.".$EntityMibIndex['Backplane']);
+	  $ret['Backplane_Software'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.10.".$EntityMibIndex['Backplane']);
+	  $ret['Backplane_Serial'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.11.".$EntityMibIndex['Backplane']);
+	  $ret['Backplane_Model'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.13.".$EntityMibIndex['Backplane']);
+	}
+
+      if($EntityMibIndex_Sup != "")
+	{
+	  $ret['Supervisor_Descr'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$EntityMibIndex_Sup);
+	  $ret['Supervisor_Firmware'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.9.".$EntityMibIndex_Sup);
+	  $ret['Supervisor_Software'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.10.".$EntityMibIndex_Sup);
+	  $ret['Supervisor_Serial'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.11.".$EntityMibIndex_Sup);
+	  $ret['Supervisor_Model'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.13.".$EntityMibIndex_Sup);
+	}
+
+      // get rid of anything empty
+      foreach($ret as $key => $val)
+	{
+	  if(strlen(trim($val)) == 0){ unset($ret[$key]);}
+	}
+
+      return $ret;
+
+    }
+
+    /*
+     * Return identifying information about the switch components, including model and serial numbers.
+     *
+     * RETURN ARRAY fields: name => array('Descr', 'Firmware', 'Software', 'Serial', 'Model')
+     *
+     * @return array
+     */
+    public function getComponentInfo()
+    {
+      $ret = array();
+
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+
+      // get stuff from ENTITY-MIB
+      snmp_set_oid_numeric_print(TRUE); // we need numeric OIDs
+      $ENTITYmibWalk = snmprealwalk($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.7"); // ENTITY-MIB::entPhysicalName
+      $EntityMibIndex = array();
+      $EntityMibIndex_Sup = "";
+      foreach($ENTITYmibWalk as $key => $val)
+	{
+	  $temp = str_replace(".1.3.6.1.2.1.47.1.1.1.1.7.", "", $key);
+	  $EntityMibIndex[$val] = $temp;
+	  if(strstr($val, "Linecard") != false)
+	    {
+	      $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$temp);
+	      if(strpos($foo, "Supervisor")){ $EntityMibIndex_Sup = $temp;} 
+	    }
+	}
+      // we now have an array of IF-MIB::ifDescr to ENTITY-MIB::entPhysicalName
+
+      foreach($EntityMibIndex as $name => $index)
+	{
+	  $arr = array();
+	  $arr['System_Descr'] = trim(snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.2.".$index));
+	  $arr['Firmware'] = trim(snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.9.".$index));
+	  $arr['Software'] = trim(snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.10.".$index));
+	  $arr['Serial'] = trim(snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.11.".$index));
+	  $arr['Model'] = trim(snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.47.1.1.1.1.13.".$index));
+	  foreach($arr as $key => $val)
+	    {
+	      if(trim($val) == ""){ unset($arr[$key]);}
+	    }
+	  if(count($arr) > 1)
+	    {
+	      $ret[$name] = $arr;
+	    }
+	}
+
+      return $ret;
+
+    }
 
 }
 
