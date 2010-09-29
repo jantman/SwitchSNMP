@@ -59,6 +59,7 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
     private $IFMIB_types = array(); // see end of this file
     private $ENTITY_MIB_classes = array(); // see end of this file
     public $type = "Cisco CatOS";
+    private $debug = false;
     /*
      * END CLASS VARIABLES
      */
@@ -69,12 +70,13 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
      * @arg IP IP address of switch (default "")
      * @return int 0 on success, 1 on invalid IP address, 2 if switch can't be pinged, 3 if SNMP fails, 4 if no class for switch type
      */
-    public function __construct($IP, $rocommunity)
+    public function __construct($IP, $rocommunity, $debug = false)
 	{
 	    if($IP == ""){ return 1;}
 	    $this->rocommunity = $rocommunity;
 	    $this->IP = $IP;
 	    $this->makeConstants();
+	    $this->debug = $debug;
 	}
 
     /*
@@ -427,7 +429,143 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
       return $ret;
     }
 
+    /**
+     * Copy the switch's running configuration to a TFTP server
+     *
+     * @todo - this should raise an exception instead of returning a boolean?
+     *
+     * @param string $tftp_server IP address
+     * @param string $upload_path the path to upload config to, as seen by a TFTP client
+     * @param string $local_path the full path to the file to be created (must already exist and be chmod 777, this is checked in function)
+     * @return boolean
+     */
+    public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path)
+    {
 
+      if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": using local path: $local_path\n");}
+
+      if(! file_exists($local_path))
+	{
+	  throw new Exception("copyRunningConfigTftp: local file $local_path does not exist, cannot continue.");
+	}
+
+      if(fileperms($local_path) != 33279) // 777
+	{
+	  throw new Exception("copyRunningConfigTftp: local file $local_path permissions wrong (are ".decoct(fileperms($local_path))." should be 0777), cannot continue.");
+	}
+
+      //$ccCopyIndex = rand(1, 2000);
+      $ccCopyIndex = 0;
+
+      // first get the supervisor module number
+      $module = -1;
+      $foo = $this->getComponentInfo();
+      foreach($foo as $idx => $arr)
+	{
+	  if(isset($arr['System_Descr']) && strpos($arr['System_Descr'], "Supervisor")){ $module = $idx;}
+	}
+      if($module == -1)
+	{
+	  // we couldn't find the sup
+	  throw new Exception("Unable to identify switch supervisor module number.");
+	}
+
+      if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": got module number as $module\n");}
+
+      // TODO - need to raise exceptions for these
+
+      // set TFTP server address
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.5.1.5.1.".$ccCopyIndex, 's', $tftp_server); // enterprises.9.5.1.5.1.0 - tftpHost
+	  if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": snmpset .1.3.6.1.4.1.9.5.1.5.1.$ccCopyIndex s $tftp_server\n");}
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      // set destination filename
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.5.1.5.2.".$ccCopyIndex, 's', $upload_path); // tftpFile
+	  if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": snmpset .1.3.6.1.4.1.9.5.1.5.2.$ccCopyIndex s $upload_path\n");}
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      // set the module number to use
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.5.1.5.3.".$ccCopyIndex, 'i', $module); // tftpModule
+	  if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": snmpset .1.3.6.1.4.1.9.5.1.5.3.$ccCopyIndex i $module\n");}
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      // start the copy
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.5.1.5.4.".$ccCopyIndex, 'i', 3); // tftpAction; 3 = uploadConfig
+	  if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": snmpset .1.3.6.1.4.1.9.5.1.5.4.$ccCopyIndex  i 3\n");}
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+      // check that the copy worked successfully - wait in 1/100 sec (10,000 us) increments up to 20 times.
+      $status = 0;
+      for($i = 0; $i < 20; $i++)
+	{
+	  usleep(500000); // delay 1/2 second = 500000 us
+	  try
+	    {
+	      $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.5.1.5.5.".$ccCopyIndex); // tftpResult
+	      $foo = (int)$foo;
+	    }
+	  catch (Exception $e)
+	    {
+	      fwrite(STDERR, "ERROR: Unable to perform snmpget, Error: ".$e->getMessage()."\n");
+	      return false;
+	    } 
+
+	  if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": got tftpResult=$foo\n");}
+	  // 1 = inProgress 2 = success 3 = noResponse 4 = tooManyRetries 5 = noBuffers (...)
+	  if($foo == 2) { return true;} // successful
+	  elseif($foo > 2)
+	    {
+	      // failed
+	      $failReasons = array(3 => "noResponse", 4 => "tooManyRetries", 5 => "noBuffers", 10 => "serverError", 13 => "fileNotFound", 14 => "invalidTftpHost", 15 => "invalidTftpModule", 16 => "accessViolation", 17 => "unknownStatus");
+	      fwrite(STDERR, "ERROR: config backup failed: status=".$foo." (".$failReasons[$foo].")\n");
+	      return false;
+	    }
+	  else
+	    {
+	      $status = $foo;
+	    }
+	  // if we're still waiting or running, just loop again...
+	}
+
+      if($status == 2)
+	{
+	  return true;
+	}
+      else
+	{
+	  fwrite(STDERR, "ERROR: writeMem timed out after 10 seconds, status is unknown.\n");
+	}
+      return false;
+    }    
 
 }
 

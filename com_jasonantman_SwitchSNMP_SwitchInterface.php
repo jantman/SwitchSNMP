@@ -109,6 +109,19 @@ interface com_jasonantman_SwitchSNMP_SwitchInterface
      */
     public function setPortVlan($ifIndex, $vlanNum);
 
+    /**
+     * Copy the switch's running configuration to a TFTP server
+     *
+     * @todo - this should raise an exception instead of returning a boolean?
+     *
+     * @param string $tftp_server IP address
+     * @param string $upload_path the path to upload config to, as seen by a TFTP client
+     * @param string $local_path the full path to the file to be created (must already exist and be chmod 777, this is checked in function)
+     * @return boolean
+     */
+    public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path);
+
+
 }
 
 ?>

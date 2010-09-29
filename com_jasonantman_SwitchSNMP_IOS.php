@@ -59,6 +59,7 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
     private $IFMIB_types = array(); // see end of this file
     private $ENTITY_MIB_classes = array(); // see end of this file
     public $type = "Cisco IOS";
+    private $debug = false;
     /*
      * END CLASS VARIABLES
      */
@@ -69,12 +70,13 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
      * @arg IP IP address of switch (default "")
      * @return int 0 on success, 1 on invalid IP address, 2 if switch can't be pinged, 3 if SNMP fails, 4 if no class for switch type
      */
-    public function __construct($IP, $rocommunity)
+    public function __construct($IP, $rocommunity, $debug = false)
 	{
 	    if($IP == ""){ return 1;}
 	    $this->rocommunity = $rocommunity;
 	    $this->IP = $IP;
 	    $this->makeConstants();
+	    $this->debug = $debug
 	}
 
     /*
@@ -441,6 +443,8 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
     /*
      * Write mem on the switch
      *
+     * @todo - this should raise an exception instead of returning a boolean?
+     *
      * @return boolean
      */
     public function writeMem()
@@ -546,6 +550,8 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
     /*
      * Get the specified port's current VLAN
      *
+     * @todo - raise an exception
+     *
      * @param $ifIndex integer IF-MIB index number
      *
      * @return integer
@@ -565,6 +571,20 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 
 	$foo = (int)$foo;
 	return $foo;
+    }
+
+    /**
+     * Copy the switch's running configuration to a TFTP server
+     *
+     * @todo - this should raise an exception instead of returning a boolean?
+     *
+     * @param string $tftp_server IP address
+     * @param string $upload_path the path to upload config to, as seen by a TFTP client
+     * @return boolean
+     */
+    public function copyRunningConfigTftp($tftp_server, $upload_path)
+    {
+      throw new Exception("Method not implemented in IOS switch class."); // TODO - implement this method
     }
 
     /*

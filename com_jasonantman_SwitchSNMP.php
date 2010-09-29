@@ -108,7 +108,7 @@ class com_jasonantman_SwitchSNMP
 		$className = substr($path, 0, strlen($path) - 4);
 		require_once($path);
 		if($this->debug) { fwrite(STDERR, "Checking switch class ".$className." ........ ");}
-		$temp = new $className($this->IP, $this->rocommunity);
+		$temp = new $className($this->IP, $this->rocommunity, $this->debug);
 		if($this->debug) { fwrite(STDERR, "Done.\n");}
 		if($temp->identifySwitch()){ $mySwitch = $temp; break;}
 	      }
@@ -196,6 +196,11 @@ class com_jasonantman_SwitchSNMP
     public function getPortIndexNameArray()
     {
 	return $this->switch->getPortIndexNameArray();
+    }
+
+    public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path)
+    {
+      return $this->switch->copyRunningConfigTftp($tftp_server, $upload_path, $local_path);
     }
 
 }
