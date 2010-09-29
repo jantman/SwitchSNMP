@@ -1,42 +1,50 @@
 #!/usr/bin/php
 <?php
-//
-// +----------------------------------------------------------------------+
-// | RackMan      http://rackman.jasonantman.com                          |
-// +----------------------------------------------------------------------+
-// | Copyright (c) 2009 Jason Antman.                                     |
-// |                                                                      |
-// | This program is free software; you can redistribute it and/or modify |
-// | it under the terms of the GNU General Public License as published by |
-// | the Free Software Foundation; either version 3 of the License, or    |
-// | (at your option) any later version.                                  |
-// |                                                                      |
-// | This program is distributed in the hope that it will be useful,      |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of       |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        |
-// | GNU General Public License for more details.                         |
-// |                                                                      |
-// | You should have received a copy of the GNU General Public License    |
-// | along with this program; if not, write to:                           |
-// |                                                                      |
-// | Free Software Foundation, Inc.                                       |
-// | 59 Temple Place - Suite 330                                          |
-// | Boston, MA 02111-1307, USA.                                          |
-// +----------------------------------------------------------------------+
-// | ADDITIONAL TERMS (pursuant to GPL Section 7):                        |
-// | 1) You may not remove any of the "Author" or "Copyright" attributions|
-// |     from this file or any others distributed with this software.     |
-// | 2) If modified, you must make substantial effort to differentiate    |
-// |     your modified version from the original, while retaining all     |
-// |     attribution to the original project and authors.                 |
-// +----------------------------------------------------------------------+
-// |Please use the above URL for bug reports and feature/support requests.|
-// +----------------------------------------------------------------------+
-// | Authors: Jason Antman <jason@jasonantman.com>                        |
-// +----------------------------------------------------------------------+
-// | $LastChangedRevision:: 5                                           $ |
-// | $HeadURL:: http://svn.jasonantman.com/rackman/bin/getSwitchPatches#$ |
-// +----------------------------------------------------------------------+
+/**
+ * Script to integrate with RackMan and get switch patch information. (DEPRECATED).
+ *
+ * SwitchSNMP <http://switchsnmp.jasonantman.com>
+ * A collection of classes and scripts to communicate with network devices via SNMP.
+ *
+ * Dependencies:
+ * - PHP snmp
+ * - PEAR Net_Ping
+ *
+ * Copyright (c) 2009 Jason Antman.
+ * @author Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
+ *
+ ******************************************************************************
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or   
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to:
+ * 
+ * Free Software Foundation, Inc.
+ * 59 Temple Place - Suite 330
+ * Boston, MA 02111-1307, USA.
+ ******************************************************************************
+ * ADDITIONAL TERMS (pursuant to GPL Section 7):
+ * 1) You may not remove any of the "Author" or "Copyright" attributions
+ *     from this file or any others distributed with this software.
+ * 2) If modified, you must make substantial effort to differentiate
+ *     your modified version from the original, while retaining all
+ *     attribution to the original project and authors.    
+ ******************************************************************************
+ * Please use the above URL for bug reports and feature/support requests.
+ ******************************************************************************
+ * $LastChangedRevision$
+ * $HeadURL$
+ ******************************************************************************
+ */
+
 require_once('../inc/com_jasonantman_SwitchSNMP.php');
 require_once('../inc/funcs.php.inc');
 require_once('../config/config.php');
