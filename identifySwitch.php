@@ -59,7 +59,6 @@ try
 catch (Exception $e)
 {
   fwrite(STDERR, "ERROR: Attempt to construct com_jasonantman_SwitchSNMP threw exception: ".$e->getMessage()."\n");
-  continue;
 }
 
 echo "SWITCH INFORMATION:\n";

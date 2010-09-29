@@ -309,7 +309,7 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
 	}
       catch (Exception $e)
 	{
-	  continue;
+	  // ignore this, we're just adding to an array, it doesn't matter
 	}
 
       try
@@ -318,7 +318,7 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
 	}
       catch (Exception $e)
 	{
-	  continue;
+	  // ignore this, we're just adding to an array, it doesn't matter
 	}
 
       $ret['sysUpTime'] = (float)snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.3.0"); // SNMPv2-MIB::sysUpTime - timeticks
