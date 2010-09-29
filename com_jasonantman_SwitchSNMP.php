@@ -91,7 +91,7 @@ class com_jasonantman_SwitchSNMP
 	    }
 
 	    // try to get SNMP on the switch
-	    if(! snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.1.0"))
+	    if(! @snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.1.1.0"))
 	    {
 		throw new Exception("Cannot execute SNMPget on specified IP.");
 	    }
