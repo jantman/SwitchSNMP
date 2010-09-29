@@ -54,7 +54,6 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
      */
     private $IP = ""; // IP address of switch
     private $rocommunity = ""; // ro SNMP community string
-    private $CISCO_STACK_MIB_portType = array(); // see end of this file
     public $GET_PORT_RETURN_FIELDS = array(); // see end of this file
     private $IFMIB_types = array(); // see end of this file
     private $ENTITY_MIB_classes = array(); // see end of this file
@@ -173,9 +172,10 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
 
     /*
      * Find out what MAC addresses are on the ports
+     * @param $vlans array - array of vlan numbers to check
      * @return array like ifIndex => array(MAC addresses)
      */
-    public function getPortMACs()
+    public function getPortMACs($vlans)
 	{
 	    $resultArr = array();
 	    $Dot1dTOif = array();
@@ -257,6 +257,22 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
 	    $x = trim($x);
 	    return $x;
 	}
+
+    /*
+     * Set the specified port to the specified VLAN
+     *
+     * @todo - implement this method
+     *
+     * @param $ifIndex integer IF-MIB index number
+     * @param $vlanNum integer VLAN number
+     *
+     * @return boolean
+     */
+    public function setPortVlan($ifIndex, $vlanNum)
+    {
+      throw new Exception("Method not implemented in ProCurve switch class."); // TODO - implement this method
+    }
+
 
 }
 
