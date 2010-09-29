@@ -46,6 +46,7 @@
  */
 
 require_once("Net/Ping.php");
+require_once('com_jasonantman_SwitchSNMP_SwitchInterface.php');
 
 /**
  * Main com_jasonantman_SwitchSNMP class (constructed by client scripts)
@@ -138,7 +139,7 @@ class com_jasonantman_SwitchSNMP
 	  $dh = opendir(".");
 	  while($entry = readdir($dh))
 	    {
-	      if(is_file($entry) && substr($entry, 0, 27) == "com_jasonantman_SwitchSNMP_" && substr($entry, strlen($entry) - 4) == ".php")
+	      if(is_file($entry) && substr($entry, 0, 27) == "com_jasonantman_SwitchSNMP_" && substr($entry, strlen($entry) - 4) == ".php" && $entry != 'com_jasonantman_SwitchSNMP_SwitchInterface.php')
 		{
 		  $foo[] = $entry;
 		}

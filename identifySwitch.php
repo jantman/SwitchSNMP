@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 /**
@@ -53,7 +54,7 @@ if(isset($argv[2])){ $community = $argv[2];} else { $community = "public";}
 
 try
 {
-  $switch = new com_jasonantman_SwitchSNMP($hostname, $community, $true);
+  $switch = new com_jasonantman_SwitchSNMP($hostname, $community, true);
 }
 catch (Exception $e)
 {
@@ -61,26 +62,11 @@ catch (Exception $e)
   continue;
 }
 
-// END TEST HARNESS
+echo "SWITCH INFORMATION:\n";
+echo var_dump($switch->getSwitchInfo())."\n";
 
-die();
-
-// get an array of all VLANs
-$vlans = array();
-$foo = $switch->getPorts();
-foreach($foo as $idx => $arr)
-{
-  if(strlen($arr['VLAN']) >= 1){ $vlans[$arr['VLAN']] = $arr['VLAN'];}
-}
-// done getting array of VLANs
-
-$foo = $switch->getPortMACs($vlans);
-
-echo '<pre>';
-echo var_dump($foo);
-echo '</pre>';
-
-// DISREGARD BELOW THIS LINE
+echo "COMPONENT INFORMATION:\n";
+echo var_dump($switch->getComponentInfo())."\n";
 
 
 ?>

@@ -46,7 +46,7 @@
  */
 
 // This class should only be called by com_jasonantman_SwitchSNMP.
-class com_jasonantman_SwitchSNMP_ProCurve
+class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_SwitchInterface
 {
 
     /*
