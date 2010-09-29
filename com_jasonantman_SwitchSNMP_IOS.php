@@ -439,6 +439,135 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 	}
 
     /*
+     * Write mem on the switch
+     *
+     * @return boolean
+     */
+    public function writeMem()
+    {
+
+      // generate a random int (1, 2147483647) for the ccCopyIndex
+      $ccCopyIndex = rand(1, 2147483647);
+
+      // TODO - need to raise exceptions for these
+
+      // set source file
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.96.1.1.1.1.3.".$ccCopyIndex, 'i', 4); // ccCopySourceFileType = 4 (runningConfig)
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      // set destination file
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.96.1.1.1.1.4.".$ccCopyIndex, 'i', 3); // ccCopySourceFileType = 3 (startupConfig)
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      // start the copy
+      try
+	{
+	  $foo = snmpset($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.96.1.1.1.1.14.".$ccCopyIndex, 'i', 1); // ccCopyEntryRowStatus = 1 (active) - start the copy
+	}
+      catch (Exception $e)
+	{
+	  fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	  return false;
+	}
+
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+      // check that the copy worked successfully - wait in 1/100 sec (10,000 us) increments up to 20 times.
+      $status = 0;
+      for($i = 0; $i < 20; $i++)
+	{
+	  usleep(10000); // delay 1/100 second = 10000 us
+	  try
+	    {
+	      $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.96.1.1.1.1.10.".$ccCopyIndex); // ccCopyState
+	      $foo = (int)$foo;
+	    }
+	  catch (Exception $e)
+	    {
+	      fwrite(STDERR, "ERROR: Unable to perform snmpget, Error: ".$e->getMessage()."\n");
+	      return false;
+	    } 
+
+	  // 1 = waiting, 2 = running, 3 = successful, 4 = failed
+	  if($foo == 3) { return true;} // successful
+	  elseif($foo == 4)
+	    {
+	      // failed
+	      // try to get the failure reason
+	      try
+		{
+		  $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.96.1.1.1.1.13.".$ccCopyIndex); // ccCopyFailCause
+		  $foo = (int)$foo;
+		}
+	      catch (Exception $e)
+		{
+		  fwrite(STDERR, "ERROR: Unable to perform snmpget, Error: ".$e->getMessage()."\n");
+		  return false;
+		} 
+	      $failReasons = array(1 => "unknown", 2 => "badFileName", 3 => "timeout", 4 => "noMem", 5 => "noConfig");
+	      fwrite(STDERR, "ERROR: writeMem failed: ccCopyFailCause=".$foo." (".$failReasons[$foo].")\n");
+	      return false;
+	    }
+	  else
+	    {
+	      $status = $foo;
+	    }
+	  // if we're still waiting or running, just loop again...
+	}
+
+      if($status == 1)
+	{
+	  fwrite(STDERR, "ERROR: writeMem timed out after 0.2 seconds, status is waiting.\n");
+	}
+      elseif($status == 2)
+	{
+	  fwrite(STDERR, "ERROR: writeMem timed out after 0.2 seconds, status is running.\n");
+	}
+      else
+	{
+	  fwrite(STDERR, "ERROR: writeMem timed out after 0.2 seconds, status is unknown.\n");
+	}
+      return false;
+    }
+
+    /*
+     * Get the specified port's current VLAN
+     *
+     * @param $ifIndex integer IF-MIB index number
+     *
+     * @return integer
+     */
+    public function getPortVlan($ifIndex)
+    {
+      snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
+      try
+	{
+	    $foo = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.4.1.9.9.68.1.2.2.1.2.".$ifIndex);
+	}
+      catch (Exception $e)
+	{
+	    fwrite(STDERR, "ERROR: Unable to perform snmpset, Error: ".$e->getMessage()."\n");
+	    return false;
+	}
+
+	$foo = (int)$foo;
+	return $foo;
+    }
+
+    /*
      * Parses and formats a MAC to make sure each octet is two characters
      * @arg s string - the MAC, as shown by SNMP
      * @return string
