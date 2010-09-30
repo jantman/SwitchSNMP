@@ -440,7 +440,7 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 
 	}
 
-    /*
+    /**
      * Write mem on the switch
      *
      * @todo - this should raise an exception instead of returning a boolean?
@@ -610,6 +610,18 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 	    $x = trim($x);
 	    return $x;
 	}
+
+    /**
+     * Copy running-config from the switch to a TFTP server
+     *
+     * @param string $tftp_server IP address
+     * @param string $path path to put file on TFTP server
+     */
+    public function copyConfigTftp($tftp_server, $path)
+    {
+
+
+    }
 
 }
 

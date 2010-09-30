@@ -436,23 +436,11 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
      *
      * @param string $tftp_server IP address
      * @param string $upload_path the path to upload config to, as seen by a TFTP client
-     * @param string $local_path the full path to the file to be created (must already exist and be chmod 777, this is checked in function)
+     * @param string $local_path the full path to the file to be created (must already exist and be chmod 777)
      * @return boolean
      */
     public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path)
     {
-
-      if($this->debug){ fwrite(STDERR, __CLASS__."->".__FUNCTION__.": using local path: $local_path\n");}
-
-      if(! file_exists($local_path))
-	{
-	  throw new Exception("copyRunningConfigTftp: local file $local_path does not exist, cannot continue.");
-	}
-
-      if(fileperms($local_path) != 33279) // 777
-	{
-	  throw new Exception("copyRunningConfigTftp: local file $local_path permissions wrong (are ".decoct(fileperms($local_path))." should be 0777), cannot continue.");
-	}
 
       //$ccCopyIndex = rand(1, 2000);
       $ccCopyIndex = 0;
