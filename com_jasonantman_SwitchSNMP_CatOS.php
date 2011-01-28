@@ -126,10 +126,14 @@ class com_jasonantman_SwitchSNMP_CatOS implements com_jasonantman_SwitchSNMP_Swi
 	    }
             // we now have an array of IF-MIB index => CISCO-STACK-MIB
 
+	    if($this->debug){ fwrite(STDERR, "getPorts() got ".count($StackMibIndex)." Stack Mib indicies\n");}
+
 	    foreach($IFs as $idx)
 	    {
-		$myIF = array();
-		$myIF['IFMIB-index'] = $idx;
+	      if($this->debug){ fwrite(STDERR, "getPorts() doing port with index '$idx'\n");}
+	      echo var_dump($StackMibIndex); die();
+	      $myIF = array();
+	      $myIF['IFMIB-index'] = $idx;
 		snmp_set_valueretrieval(SNMP_VALUE_PLAIN);
 		$myIF['IFMIB-descr'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.2.2.1.2.".$idx); // IF-MIB::ifDescr
 		$myIF['IFMIB-name'] = snmpget($this->IP, $this->rocommunity, ".1.3.6.1.2.1.31.1.1.1.1.".$idx); // IF-MIB::ifName

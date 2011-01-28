@@ -47,9 +47,15 @@
 
 require_once('com_jasonantman_SwitchSNMP.php');
 
-$foo = doSwitchInterfaces(1, '128.6.31.131', 'public');
+if(! isset($argv[1]))
+  {
+    die("USAGE: showVlans.php [switch IP or hostname]\n");
+  }
+$switch = trim($argv[1]);
 
 $debug = true;
+
+$foo = doSwitchInterfaces(1, $switch, 'public');
 
 echo '<pre>';
 echo var_dump($foo);

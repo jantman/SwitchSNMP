@@ -76,7 +76,7 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 	    $this->rocommunity = $rocommunity;
 	    $this->IP = $IP;
 	    $this->makeConstants();
-	    $this->debug = $debug
+	    $this->debug = $debug;
 	}
 
     /*
@@ -90,6 +90,10 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
 	    if(strstr($sysDescr, "Cisco Internetwork Operating System Software"))
 	    {
 		return true;
+	    }
+	    elseif(strstr($sysDescr, "Cisco IOS Software"))
+	    {
+	      return true;
 	    }
 	    // else:
 	    return false;
@@ -582,7 +586,7 @@ class com_jasonantman_SwitchSNMP_IOS implements com_jasonantman_SwitchSNMP_Switc
      * @param string $upload_path the path to upload config to, as seen by a TFTP client
      * @return boolean
      */
-    public function copyRunningConfigTftp($tftp_server, $upload_path)
+    public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path)
     {
       throw new Exception("Method not implemented in IOS switch class."); // TODO - implement this method
     }

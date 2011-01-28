@@ -285,7 +285,7 @@ class com_jasonantman_SwitchSNMP_ProCurve implements com_jasonantman_SwitchSNMP_
      * @param string $upload_path the path to upload config to, as seen by a TFTP client
      * @return boolean
      */
-    public function copyRunningConfigTftp($tftp_server, $upload_path)
+    public function copyRunningConfigTftp($tftp_server, $upload_path, $local_path)
     {
       throw new Exception("Method not implemented in ProCurve switch class."); // TODO - implement this method
     }
