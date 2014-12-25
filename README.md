@@ -1,6 +1,8 @@
 SwitchSNMP
 ==========
 
+[![Project Status: Unsupported - The project has reached a stable, usable state but the author(s) have ceased all work on it. A new maintainer may be desired.](http://www.repostatus.org/badges/0.1.0/unsupported.svg)](http://www.repostatus.org/#unsupported)
+
 SwitchSNMP is a collection of PHP classes, and scripts which utilize them, to
 interact with network switches (at this time, Cisco CatOS and IOS and HP
 ProCurve). The classes do things like showing and setting VLANs on ports,
